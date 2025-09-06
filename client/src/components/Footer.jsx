@@ -1,4 +1,4 @@
-import "../assets/styles/index.css"
+import "../assets/styles/components/footer.css";
 
 const Footer = () => {
   return (
@@ -7,7 +7,7 @@ const Footer = () => {
         <p>&copy; 2024 EcoFinds - Sustainable Second-Hand Marketplace. Built for a greener future.</p>
       </div>
     </footer>
-  )
-}
+  );
+};
 
-export default Footer
+export default Footer;

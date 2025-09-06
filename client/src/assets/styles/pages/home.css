@@ -1,0 +1,93 @@
+.banner {
+  width: 100%;
+  min-height: 400px;
+  position: relative;
+  background-image: url('https://yuinternational.in/wp-content/uploads/2020/04/6221c42299de6b0b835e8d7c00d56a00.jpg');
+  background-size: cover;
+  background-position: center;
+  color: var(--text-light);
+  text-align: center;
+  border-radius: 0 0 var(--radius) var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: bannerFadeIn 1.2s ease;
+  transition: var(--transition);
+}
+
+@keyframes bannerFadeIn {
+  from { opacity: 0; transform: scale(1.05) }
+  to { opacity: 1; transform: scale(1) }
+}
+
+.banner::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: linear-gradient(120deg, rgba(0, 0, 0, 0.267) 45%, rgba(34,34,40,0.25));
+  z-index: 1;
+  transition: background 0.3s;
+}
+
+
+/* Content Section */
+.banner-content {
+  position: relative;
+  z-index: 2;
+  padding: 5.5rem 2rem 5rem 2rem;
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.banner h1 {
+  font-size: 3.3rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-shadow: 0 6px 24px rgba(0,0,0,0.15);
+  margin-bottom: 1.2rem;
+  color: #fff;
+  background: linear-gradient(90deg, #d7b6ee 20%, #fff7cc 80%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.banner p {
+  font-size: 1.22rem;
+  color: rgba(255,255,255,0.97);
+  max-width: 520px;
+  margin: 0 auto;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  line-height: 1.7;
+  background: rgba(18, 18, 40, 0.23);
+  border-radius: 10px;
+  padding: 0.6rem 1.3rem;
+  backdrop-filter: blur(2px);
+  text-shadow: 0 2px 5px rgba(0,0,0,0.18);
+}
+
+@media (max-width: 983px) {
+  .banner-content { padding: 3.2rem 1rem 3rem 1rem; }
+  .banner h1 { font-size: 2.1rem; }
+  .banner p { font-size: 1rem; }
+  .banner { min-height: 210px; }
+}
+
+@media (max-width: 768px) {
+  .banner-content { padding: 2.4rem 0.5rem; }
+  .banner h1 { font-size: 1.7rem; }
+  .banner p { font-size: 0.92rem; }
+  .banner { min-height: 160px; }
+}
+
+@media (max-width: 480px) {
+  .banner-content { padding: 1.3rem 0.5rem; }
+  .banner h1 { font-size: 1.1rem; }
+  .banner p { font-size: 0.80rem; }
+  .banner { min-height: 110px; border-radius: 0 0 8px 8px;}
+}

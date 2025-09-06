@@ -3,6 +3,7 @@ import { Link } from "react-router-dom"
 import ProductCard from "../components/ProductCard"
 import SearchBar from "../components/SearchBar"
 import "../assets/styles/index.css"
+import "../assets/styles/pages/home.css"
 
 // Mock data
 const mockProducts = [
@@ -39,11 +40,18 @@ const Home = () => {
   }
 
   return (
+    <>
+          <div className="banner">
+        <div className="banner-content">
+          <h1>EcoFinds</h1>
+          <p>Find unique second-hand treasures and help the planet by reusing items</p>
+        </div>
+      </div>
     <div className="container">
       <div style={{ padding: "2rem 0" }}>
         <div className="text-center mb-2">
-          <h1>Welcome to EcoFinds</h1>
-          <p className="text-muted">Discover amazing second-hand treasures and give items a new life</p>
+          <h2>Discover Amazing Finds</h2>
+          <p className="text-muted">Explore our curated collection of pre-loved items</p>
         </div>
 
         <SearchBar onSearch={handleSearch} onFilter={handleFilter} />
@@ -65,6 +73,7 @@ const Home = () => {
         +
       </Link>
     </div>
+    </>
   )
 }
 
