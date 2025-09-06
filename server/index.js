@@ -1,33 +1,44 @@
-const connection = require("./connection/connection");
-
-const express = require("express");
-const cors = require("cors");
-const bodyparser = require("body-parser");
-const dotenv = require("dotenv");
-
-dotenv.config();
-const port = process.env.PORT;
-const URL=process.env.URL;
+const express = require('express');
+const cors = require('cors');
+const morgan = require('morgan');
+const path = require('path');
+const db = require('./connection/connection');
+const errorHandler = require('./middleware/errorHandler');
+require('dotenv').config();
 
 const app = express();
+const PORT = process.env.PORT || 5000;
+
+// Middleware
 app.use(cors());
+app.use(morgan('dev'));
 app.use(express.json());
-app.use(bodyparser.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Serve static files from the uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Test DB connection
+(async () => {
+  try {
+    const [rows] = await db.query('SELECT 1 + 1 AS solution');
+    console.log('Successfully connected to the database!', rows[0].solution);
+  } catch (err) {
+    console.error('Database connection failed:', err.stack);
+  }
+})();
 
+// Import and use routes
+app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/users', require('./routes/userRoutes'));
+app.use('/api/products', require('./routes/productRoutes'));
+app.use('/api/categories', require('./routes/categoryRoutes'));
+app.use('/api/cart', require('./routes/cartRoutes'));
+app.use('/api/orders', require('./routes/orderRoutes'));
 
+// Centralized error handler
+app.use(errorHandler);
 
-
- connection.connect((error) => {
-    if (error) {
-        console.log("failed in connection");
-    }else{
-        console.log("database connected successfully")
-    }
-    app.listen(port, () => {
-        console.log(`server is running on ${URL}`);
-
-    })
-})
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});

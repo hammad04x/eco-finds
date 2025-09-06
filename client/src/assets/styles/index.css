@@ -381,6 +381,9 @@ textarea:focus {
   box-shadow: var(--shadow-hover);
   transition: var(--transition);
   z-index: 50;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .fab:hover {
@@ -428,6 +431,12 @@ textarea:focus {
 }
 
 /* Responsive Design */
+@media (max-width: 983px) {
+   .grid-4 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+}
 @media (max-width: 768px) {
   .grid-4 {
     grid-template-columns: repeat(2, 1fr);
