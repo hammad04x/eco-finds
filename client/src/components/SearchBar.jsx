@@ -13,7 +13,9 @@ const SearchBar = ({ onSearch, onFilter }) => {
     const fetchCategories = async () => {
       try {
         const response = await axios.get("http://localhost:5000/api/categories");
-        setCategories([{ id: "", name: "All Categories" }, ...response.data.data]);
+        const fetchedCategories = [{ id: "", name: "All Categories" }, ...response.data.data];
+        console.log("Fetched categories:", fetchedCategories);
+        setCategories(fetchedCategories);
         setLoading(false);
       } catch (err) {
         setError("Failed to fetch categories");

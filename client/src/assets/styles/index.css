@@ -20,6 +20,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  text-decoration: none;
 }
 
 body {
@@ -86,6 +87,7 @@ button.primary:hover {
 button.secondary {
   background: var(--secondary);
   color: var(--text-light);
+  margin-bottom: 20px;
 }
 
 button.secondary:hover {
@@ -222,15 +224,33 @@ textarea:focus {
 }
 
 .product-image {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
+  width: 100%;            /* Make it span the full width of the card */
+  max-height: 500px;      /* Limit the maximum height */
+  height: 200px;          /* Fixed height */
+  object-fit: cover;      /* Cover the area without distortion */
   background: #f0f0f0;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--text-muted);
+  border-radius: var(--radius);
+  overflow: hidden;       /* Prevent overflow */
 }
+.products-image {
+  width: 100%;            /* Make it span the full width of the card */
+  max-height: 500px;      /* Limit the maximum height */
+  height: 370px;          /* Fixed height */
+  object-fit: cover;      /* Cover the area without distortion */
+  background: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  border-radius: var(--radius);
+  overflow: hidden;       /* Prevent overflow */
+}
+
+
 
 .product-info {
   padding: var(--spacing);
@@ -374,6 +394,9 @@ textarea:focus {
   color: var(--text-muted);
   font-size: 0.8rem;
 }
+.cart-item-image img{
+  width: 80px;
+}
 
 .cart-item-info {
   flex: 1;
@@ -495,4 +518,66 @@ textarea:focus {
 
 .gap-2 {
   gap: var(--spacing);
+}
+
+
+
+.featured-categories,
+.how-it-works,
+.testimonials {
+  margin: 3rem 0;
+}
+
+.featured-categories h2,
+.how-it-works h2,
+.testimonials h2 {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.category-card,
+.step-card,
+.testimonial-card {
+  background: white;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+  text-align: center;
+  transition: var(--transition);
+}
+
+.category-card:hover,
+.step-card:hover,
+.testimonial-card:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-5px);
+}
+
+.category-card h3,
+.step-card h3 {
+  margin-bottom: 0.75rem;
+  color: var(--primary);
+}
+
+.testimonial-card p {
+  font-style: italic;
+  margin-bottom: 1rem;
+}
+
+.testimonial-card h4 {
+  color: var(--secondary);
+  font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
 }

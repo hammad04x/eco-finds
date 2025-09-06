@@ -436,17 +436,6 @@
   }
 }
 
-/* Focus States */
-.nav-link:focus,
-.drawer-link:focus,
-.navbar-brand:focus,
-.navbar-toggle:focus,
-.drawer-close:focus,
-.drawer-login-btn:focus {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
 /* Smooth scrolling for drawer */
 .navbar-drawer {
   scroll-behavior: smooth;

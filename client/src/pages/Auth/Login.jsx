@@ -35,7 +35,6 @@ const Login = () => {
         },
       });
 
-      console.log("Login response:", response.data); // Log full response
       if (!response.data.data || !response.data.data.token) {
         throw new Error("Invalid response structure from server");
       }
@@ -50,7 +49,9 @@ const Login = () => {
         })
       );
 
-      navigate("/dashboard");
+      // Reload the page to reflect login state
+      window.location.href = "/dashboard";
+
     } catch (err) {
       console.error("Login error:", err.response?.data || err);
       const errorMessage = err.response?.data?.message ||
@@ -61,6 +62,7 @@ const Login = () => {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="auth-container">

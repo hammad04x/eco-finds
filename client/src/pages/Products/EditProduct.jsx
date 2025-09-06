@@ -45,7 +45,7 @@ const EditProduct = () => {
     fetchProductAndCategories();
   }, [id]);
 
-  const handleChange = (e) => {
+ const handleChange = (e) => {
     if (e.target.name === "image") {
       setFormData({
         ...formData,

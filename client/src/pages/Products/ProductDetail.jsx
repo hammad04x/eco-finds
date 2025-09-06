@@ -74,7 +74,7 @@ const ProductDetail = () => {
             <div className="product-image" style={{ height: "400px", borderRadius: "var(--radius)" }}>
               {product.image ? (
                 <img
-                  src={`/uploads${product.image}`}
+                  src={`/uploads/${product.image}`}
                   alt={product.title}
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
@@ -99,15 +99,11 @@ const ProductDetail = () => {
             <div className="card">
               <h4>Product Details</h4>
               <div style={{ display: "grid", gap: "0.5rem" }}>
-                <div>
-                  <strong>Condition:</strong> {product.condition || "Not specified"}
-                </div>
+              
                 <div>
                   <strong>Seller:</strong> {product.seller_username}
                 </div>
-                <div>
-                  <strong>Location:</strong> {product.location || "Not specified"}
-                </div>
+               
               </div>
             </div>
 

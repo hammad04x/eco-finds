@@ -1,32 +1,36 @@
-import { useState, useEffect } from "react"; // Added useEffect for data fetching
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
 import SearchBar from "../components/SearchBar";
-import axios from "axios"; // Added Axios for API calls
+import axios from "axios";
 import "../assets/styles/index.css";
 import "../assets/styles/pages/home.css";
 
-// Removed mockProducts as we'll fetch real data
 const Home = () => {
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch products from the backend
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const response = await axios.get("http://localhost:5000/api/products", {
           params: {
             page: 1,
-            limit: 10, // Adjust limit as needed
+            limit: 10,
           },
         });
-        // Adjust based on your API response structure
         const fetchedProducts = response.data.data.products || response.data.data;
-        setProducts(fetchedProducts);
-        setFilteredProducts(fetchedProducts);
+        console.log("Fetched products (raw):", fetchedProducts);
+        // Ensure category_id is treated as a number
+        const normalizedProducts = fetchedProducts.map((product) => ({
+          ...product,
+          category_id: Number(product.category_id),
+        }));
+        console.log("Fetched products (normalized):", normalizedProducts);
+        setProducts(normalizedProducts);
+        setFilteredProducts(normalizedProducts);
         setLoading(false);
       } catch (err) {
         console.error("Error fetching products:", err);
@@ -34,7 +38,6 @@ const Home = () => {
         setLoading(false);
       }
     };
-
     fetchProducts();
   }, []);
 
@@ -49,12 +52,17 @@ const Home = () => {
     setFilteredProducts(filtered);
   };
 
-  const handleFilter = (category) => {
-    if (!category || category === "All Categories") {
+  const handleFilter = (categoryId) => {
+    console.log("Selected categoryId (raw):", categoryId);
+    const selectedId = categoryId === "" ? "" : Number(categoryId); // Convert to number if not empty
+    console.log("Selected categoryId (normalized):", selectedId);
+    console.log("All product category_ids:", products.map((p) => p.category_id));
+    if (!selectedId || selectedId === "") {
       setFilteredProducts(products);
       return;
     }
-    const filtered = products.filter((product) => product.category === category);
+    const filtered = products.filter((product) => product.category_id === selectedId);
+    console.log("Filtered products:", filtered);
     setFilteredProducts(filtered);
   };
 
@@ -100,5 +108,3 @@ const Home = () => {
 };
 
 export default Home;
-
-

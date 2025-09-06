@@ -79,8 +79,16 @@ const createProduct = async (req, res, next) => {
 
 const updateProduct = async (req, res, next) => {
     try {
+        console.log('Update request body:', req.body); // Debug log
+        console.log('Update file:', req.file); // Debug log
+        
         const { id } = req.params;
         const userId = req.user.id;
+
+        // Validate product ID
+        if (!validate.isNumericId(id)) {
+            return res.status(400).json({ success: false, message: 'Invalid product ID' });
+        }
 
         const product = await productModel.findById(id);
         if (!product) {
@@ -90,19 +98,38 @@ const updateProduct = async (req, res, next) => {
             return res.status(403).json({ success: false, message: 'Not authorized to update this product' });
         }
 
-        let image = product.image;
-        if (req.files && req.files.length > 0) {
-            image = path.join( req.files[0].filename); // Use first image
+        // Handle image update
+        let image = product.image; // Keep existing image by default
+        if (req.file) { // Use req.file (singular) not req.files
+            image = path.join(req.file.filename); // Use req.file.filename
+            console.log('New image path:', image); // Debug log
         }
 
-        const updated = await productModel.update(id, { ...req.body, user_id: userId, image });
+        // Prepare update data
+        const updateData = {
+            title: req.body.title,
+            description: req.body.description,
+            price: req.body.price,
+            category_id: req.body.category_id,
+            user_id: userId,
+            image: image
+        };
+
+        console.log('Update data:', updateData); // Debug log
+
+        const updated = await productModel.update(id, updateData);
         if (updated) {
             const updatedProduct = await productModel.findById(id);
-            res.status(200).json({ success: true, message: 'Product updated successfully', data: updatedProduct });
+            res.status(200).json({ 
+                success: true, 
+                message: 'Product updated successfully', 
+                data: updatedProduct 
+            });
         } else {
             res.status(400).json({ success: false, message: 'Failed to update product' });
         }
     } catch (error) {
+        console.error('Error in updateProduct:', error); // Debug log
         next(error);
     }
 };

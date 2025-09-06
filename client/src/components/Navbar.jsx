@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { 
   FiShoppingCart, 
   FiMenu, 
@@ -9,12 +9,23 @@ import {
   FiList,
   FiLogIn,
   FiUser,
-  FiChevronRight
+  FiChevronRight,
+  FiLogOut
 } from "react-icons/fi";
 import "../assets/styles/components/navbar.css";
 
 const Navbar = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+
+  // Load user from localStorage
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
 
   const openDrawer = () => {
     setDrawerOpen(true);
@@ -26,28 +37,28 @@ const Navbar = () => {
     document.body.classList.remove('drawer-open');
   };
 
-  // Close drawer on escape key
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    setUser(null);
+    navigate("/");
+    closeDrawer();
+  };
+
   useEffect(() => {
     const handleEscape = (event) => {
       if (event.key === 'Escape' && drawerOpen) {
         closeDrawer();
       }
     };
-
     if (drawerOpen) {
       document.addEventListener('keydown', handleEscape);
     }
-
     return () => {
       document.removeEventListener('keydown', handleEscape);
       document.body.classList.remove('drawer-open');
     };
   }, [drawerOpen]);
-
-  // Close drawer on route change
-  useEffect(() => {
-    closeDrawer();
-  }, []);
 
   return (
     <nav className="navbar">
@@ -56,19 +67,13 @@ const Navbar = () => {
 
         <ul className="navbar-nav">
           <li>
-            <NavLink to="/" end className="nav-link">
-              <span>Home</span>
-            </NavLink>
+            <NavLink to="/" end className="nav-link"><span>Home</span></NavLink>
           </li>
           <li>
-            <NavLink to="/dashboard" className="nav-link">
-              <span>Dashboard</span>
-            </NavLink>
+            <NavLink to="/dashboard" className="nav-link"><span>Dashboard</span></NavLink>
           </li>
           <li>
-            <NavLink to="/my-listings" className="nav-link">
-              <span>My Listings</span>
-            </NavLink>
+            <NavLink to="/my-listings" className="nav-link"><span>My Listings</span></NavLink>
           </li>
           <li>
             <NavLink to="/cart" className="nav-link icon-link" aria-label="Cart">
@@ -76,11 +81,25 @@ const Navbar = () => {
               <span className="cart-text">Cart</span>
             </NavLink>
           </li>
-          <li>
-            <NavLink to="/login" className="nav-link login-btn">
-              <span>Login</span>
-            </NavLink>
-          </li>
+
+          {/* Conditionally show Login or Logout/Signup */}
+          {!user ? (
+            <>
+              <li>
+                <NavLink to="/login" className="nav-link login-btn"><span>Login</span></NavLink>
+              </li>
+              <li>
+                <NavLink to="/signup" className="nav-link login-btn"><span>Signup</span></NavLink>
+              </li>
+            </>
+          ) : (
+            <li>
+              <button onClick={handleLogout} className="nav-link login-btn">
+                <FiLogOut size={18} />
+                <span>Logout</span>
+              </button>
+            </li>
+          )}
         </ul>
 
         <button
@@ -94,13 +113,7 @@ const Navbar = () => {
       </div>
 
       {/* Drawer */}
-      <div 
-        className={`navbar-drawer ${drawerOpen ? "open" : ""}`}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="drawer-title"
-      >
-        {/* Drawer Header */}
+      <div className={`navbar-drawer ${drawerOpen ? "open" : ""}`}>
         <div className="drawer-header">
           <div className="drawer-brand">
             <h2 id="drawer-title" className="brand-name">EcoFinds</h2>
@@ -110,99 +123,49 @@ const Navbar = () => {
             className="drawer-close"
             aria-label="Close navigation menu"
             onClick={closeDrawer}
-            type="button"
           >
             <FiX size={20} />
           </button>
         </div>
 
-        {/* Drawer Navigation */}
-        <div className="drawer-nav" role="navigation" aria-label="Main navigation">
+        <div className="drawer-nav">
           <ul>
             <li>
-              <NavLink 
-                to="/" 
-                end 
-                className="drawer-link" 
-                onClick={closeDrawer}
-                aria-label="Go to Home page"
-              >
-                <FiHome size={20} />
-                <span>Home</span>
-                <FiChevronRight size={16} className="drawer-arrow" />
-              </NavLink>
+              <NavLink to="/" end className="drawer-link" onClick={closeDrawer}><FiHome size={20} /><span>Home</span><FiChevronRight size={16} /></NavLink>
             </li>
             <li>
-              <NavLink 
-                to="/dashboard" 
-                className="drawer-link" 
-                onClick={closeDrawer}
-                aria-label="Go to Dashboard"
-              >
-                <FiBarChart size={20} />
-                <span>Dashboard</span>
-                <FiChevronRight size={16} className="drawer-arrow" />
-              </NavLink>
+              <NavLink to="/dashboard" className="drawer-link" onClick={closeDrawer}><FiBarChart size={20} /><span>Dashboard</span><FiChevronRight size={16} /></NavLink>
             </li>
             <li>
-              <NavLink 
-                to="/my-listings" 
-                className="drawer-link" 
-                onClick={closeDrawer}
-                aria-label="Go to My Listings"
-              >
-                <FiList size={20} />
-                <span>My Listings</span>
-                <FiChevronRight size={16} className="drawer-arrow" />
-              </NavLink>
+              <NavLink to="/my-listings" className="drawer-link" onClick={closeDrawer}><FiList size={20} /><span>My Listings</span><FiChevronRight size={16} /></NavLink>
             </li>
             <li>
-              <NavLink 
-                to="/cart" 
-                className="drawer-link" 
-                onClick={closeDrawer}
-                aria-label="Go to Cart"
-              >
-                <FiShoppingCart size={20} />
-                <span>Cart</span>
-                <FiChevronRight size={16} className="drawer-arrow" />
-              </NavLink>
+              <NavLink to="/cart" className="drawer-link" onClick={closeDrawer}><FiShoppingCart size={20} /><span>Cart</span><FiChevronRight size={16} /></NavLink>
             </li>
           </ul>
         </div>
 
-        {/* Drawer Footer */}
         <div className="drawer-footer">
           <div className="user-section">
-            <div className="user-avatar" role="img" aria-label="User avatar">
-              <FiUser size={24} />
-            </div>
+            <div className="user-avatar" role="img" aria-label="User avatar"><FiUser size={24} /></div>
             <div className="user-info">
-              <span className="user-name">Guest User</span>
-              <span className="user-email">Not signed in</span>
+              <span className="user-name">{user ? user.username : "Guest User"}</span>
+              <span className="user-email">{user ? user.email : "Not signed in"}</span>
             </div>
           </div>
-          <NavLink 
-            to="/login" 
-            className="drawer-login-btn" 
-            onClick={closeDrawer}
-            aria-label="Sign in to your account"
-          >
-            <FiLogIn size={18} />
-            <span>Sign In</span>
-          </NavLink>
+          {!user ? (
+            <NavLink to="/login" className="drawer-login-btn" onClick={closeDrawer}>
+              <FiLogIn size={18} /><span>Sign In</span>
+            </NavLink>
+          ) : (
+            <button onClick={handleLogout} className="drawer-login-btn">
+              <FiLogOut size={18} /><span>Logout</span>
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Overlay */}
-      {drawerOpen && (
-        <div 
-          className="navbar-overlay" 
-          onClick={closeDrawer}
-          role="presentation"
-          aria-hidden="true"
-        />
-      )}
+      {drawerOpen && <div className="navbar-overlay" onClick={closeDrawer} />}
     </nav>
   );
 };

@@ -168,7 +168,7 @@ const Cart = () => {
                 <div key={item.id} className="cart-item">
                   <div className="cart-item-image">
                     {item.image ? (
-                      <img src={`/uploads${item.image}`} alt={item.title} />
+                      <img src={`/uploads/${item.image}`} alt={item.title} />
                     ) : (
                       <span>No Image</span>
                     )}
