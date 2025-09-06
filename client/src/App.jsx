@@ -15,6 +15,7 @@ import ProductDetail from "./pages/Products/ProductDetail"
 import MyListings from "./pages/Products/MyListings"
 import Cart from "./pages/Cart"
 import PreviousPurchases from "./pages/PreviousPurchases"
+import EditProduct from "./pages/Products/EditProduct"
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/add-product" element={<AddProduct />} />
             <Route path="/product/:id" element={<ProductDetail />} />
+            <Route path="/edit-product/:id" element={<EditProduct />} />
             <Route path="/my-listings" element={<MyListings />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/purchases" element={<PreviousPurchases />} />

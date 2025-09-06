@@ -34,9 +34,13 @@ const removeFromCart = async (cartItemId) => {
 };
 
 const clearCart = async (userId) => {
-    await pool.query('DELETE FROM cart WHERE user_id = ?', [userId]);
+    try {
+        const [result] = await pool.query('DELETE FROM cart WHERE user_id = ?', [userId]);
+        return result.affectedRows;
+    } catch (error) {
+        throw new Error(`Failed to clear cart: ${error.message}`);
+    }
 };
-
 module.exports = {
     findByUserId,
     addToCart,

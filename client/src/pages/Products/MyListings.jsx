@@ -1,99 +1,121 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
-import "../../assets/styles/index.css"
-
-// Mock user listings
-const mockListings = [
-  { id: 1, title: "Vintage Leather Jacket", price: 45, category: "Clothing", status: "Active", views: 23 },
-  { id: 2, title: "iPhone 12 Pro", price: 650, category: "Electronics", status: "Sold", views: 45 },
-  { id: 3, title: "Wooden Coffee Table", price: 120, category: "Furniture", status: "Active", views: 12 },
-  { id: 4, title: "Programming Books Set", price: 30, category: "Books", status: "Active", views: 8 },
-]
+import axios from "axios"
+import "../../assets/styles/pages/mylisting.css"
 
 const MyListings = () => {
-  const [listings, setListings] = useState(mockListings)
+  const [listings, setListings] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  const handleDelete = (id) => {
+  useEffect(() => {
+    const fetchListings = async () => {
+      try {
+        const token = localStorage.getItem("token")
+        const response = await axios.get("http://localhost:5000/api/products", {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        setListings(response.data.data.products)
+        setLoading(false)
+      } catch (err) {
+        setError("Failed to fetch listings")
+        setLoading(false)
+      }
+    }
+    fetchListings()
+  }, [])
+
+  const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this listing?")) {
-      setListings(listings.filter((listing) => listing.id !== id))
+      try {
+        const token = localStorage.getItem("token")
+        await axios.delete(`http://localhost:5000/api/products/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        setListings(listings.filter((listing) => listing.id !== id))
+      } catch (err) {
+        alert("Failed to delete product")
+      }
     }
   }
 
   const handleEdit = (id) => {
-    // In real app, this would navigate to edit form
-    alert(`Edit functionality for product ${id} would be implemented here`)
+    window.location.href = `/edit-product/${id}`
+  }
+
+  if (loading) {
+    return (
+      <div className="mylisting-container">
+        <div className="text-center mt-2">
+          <h3>Loading...</h3>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="mylisting-container">
+        <div className="text-center mt-2">
+          <h3>{error}</h3>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="container">
-      <div style={{ padding: "2rem 0" }}>
-        <div className="flex-between mb-2">
-          <div>
-            <h1>My Listings</h1>
-            <p className="text-muted">Manage your products on EcoFinds</p>
-          </div>
+    <div className="mylisting-container">
+      <div className="mylisting-header">
+        <h1>My Listings</h1>
+        <p className="description">Manage your products on EcoFinds</p>
+        <Link to="/add-product">
+          <button className="btn btn-primary">Add New Product</button>
+        </Link>
+      </div>
+
+      {listings.length === 0 ? (
+        <div className="no-listings">
+          <h3>No listings yet</h3>
+          <p className="description">Start selling by adding your first product!</p>
           <Link to="/add-product">
-            <button className="primary">Add New Product</button>
+            <button className="btn btn-primary">Add Product</button>
           </Link>
         </div>
-
-        {listings.length === 0 ? (
-          <div className="text-center mt-2">
-            <h3>No listings yet</h3>
-            <p className="text-muted">Start selling by adding your first product!</p>
-            <Link to="/add-product">
-              <button className="primary">Add Product</button>
-            </Link>
-          </div>
-        ) : (
-          <div className="grid" style={{ gap: "var(--spacing)" }}>
-            {listings.map((listing) => (
-              <div key={listing.id} className="card">
-                <div className="flex-between">
-                  <div style={{ flex: 1 }}>
-                    <h3>{listing.title}</h3>
-                    <div className="flex gap-2" style={{ alignItems: "center", marginBottom: "0.5rem" }}>
-                      <span className="product-price">${listing.price}</span>
-                      <span className="product-category">{listing.category}</span>
-                      <span
-                        style={{
-                          padding: "2px 8px",
-                          borderRadius: "4px",
-                          fontSize: "0.8rem",
-                          background: listing.status === "Active" ? "var(--success)" : "var(--secondary)",
-                          color: "white",
-                        }}
-                      >
-                        {listing.status}
-                      </span>
-                    </div>
-                    <div className="text-muted">{listing.views} views</div>
-                  </div>
-                  <div className="flex gap-1">
-                    <button
-                      onClick={() => handleEdit(listing.id)}
-                      className="secondary"
-                      style={{ padding: "8px 12px" }}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(listing.id)}
-                      style={{
-                        padding: "8px 12px",
-                        background: "#e74c3c",
-                        color: "white",
-                      }}
-                    >
-                      Delete
-                    </button>
+      ) : (
+        <div className="listings-grid">
+          {listings.map((listing) => {
+            const status = listing.status ? listing.status : "Active"
+            return (
+              <div key={listing.id} className="listing-card">
+                <div className="listing-info">
+                  <h3>{listing.title}</h3>
+                  <div className="details-row">
+                    <span className="price">${listing.price}</span>
+                    <span className="category">{listing.category_name}</span>
+                    <span className={`status ${status.toLowerCase()}`}>
+                      {status}
+                    </span>
                   </div>
                 </div>
+                <div className="listing-actions">
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => handleEdit(listing.id)}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="btn btn-danger"
+                    onClick={() => handleDelete(listing.id)}
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

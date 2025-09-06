@@ -51,16 +51,25 @@ const removeItem = async (req, res, next) => {
         if (!validate.isNumericId(cartItemId)) {
             return res.status(400).json({ success: false, message: 'Invalid cart item ID' });
         }
-
-        const removed = await cartModel.removeFromCart(cartItemId);
-        if (removed) {
-            res.status(200).json({ success: true, message: 'Item removed from cart' });
-        } else {
-            res.status(404).json({ success: false, message: 'Cart item not found' });
-        }
+        // ...
     } catch (error) {
         next(error);
     }
+};
+
+const clearCart = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    console.log("Clearing cart for user:", userId);
+    const affectedRows = await cartModel.clearCart(userId);
+    res.status(200).json({
+      success: true,
+      message: affectedRows > 0 ? "Cart cleared" : "Cart was already empty",
+    });
+  } catch (error) {
+    console.error("Error in clearCart:", error);
+    next(error);
+  }
 };
 
 module.exports = {
@@ -68,4 +77,5 @@ module.exports = {
     addItem,
     updateItemQuantity,
     removeItem,
+    clearCart, // Add this
 };

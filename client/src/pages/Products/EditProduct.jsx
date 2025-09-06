@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../../assets/styles/index.css";
 
-const AddProduct = () => {
+const EditProduct = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -14,21 +16,34 @@ const AddProduct = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchProductAndCategories = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/categories");
-        setCategories(response.data.data);
+        const token = localStorage.getItem("token");
+        const [productResponse, categoriesResponse] = await Promise.all([
+          axios.get(`http://localhost:5000/api/products/${id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          axios.get("http://localhost:5000/api/categories"),
+        ]);
+        const productData = productResponse.data.data;
+        setFormData({
+          title: productData.title,
+          description: productData.description,
+          category_id: productData.category_id,
+          price: productData.price,
+          image: null, // New image will replace existing
+        });
+        setCategories(categoriesResponse.data.data);
         setLoading(false);
       } catch (err) {
-        setError("Failed to fetch categories");
+        setError("Failed to fetch product or categories");
         setLoading(false);
       }
     };
-    fetchCategories();
-  }, []);
+    fetchProductAndCategories();
+  }, [id]);
 
   const handleChange = (e) => {
     if (e.target.name === "image") {
@@ -44,7 +59,7 @@ const AddProduct = () => {
     }
   };
 
-const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const data = new FormData();
     data.append("title", formData.title);
@@ -57,27 +72,18 @@ const handleSubmit = async (e) => {
 
     try {
       const token = localStorage.getItem("token");
-      console.log('Token from localStorage:', token);
-      if (!token) {
-        alert("No authentication token found. Please log in.");
-        return;
-      }
-
-      console.log('Request URL:', "http://localhost:5000/api/products/add");
-      console.log('FormData:', Object.fromEntries(data));
-      const response = await axios.post("http://localhost:5000/api/products/add", data, {
+      await axios.patch(`http://localhost:5000/api/products/${id}`, data, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
         },
       });
-      alert("Product added successfully!");
+      alert("Product updated successfully!");
       navigate("/my-listings");
     } catch (err) {
-      console.error('Error adding product:', err);
-      alert("Failed to add product: " + (err.response?.data?.message || "Unknown error"));
+      alert("Failed to update product: " + (err.response?.data?.message || "Unknown error"));
     }
-};
+  };
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
@@ -85,8 +91,8 @@ const handleSubmit = async (e) => {
   return (
     <div className="container">
       <div style={{ padding: "2rem 0", maxWidth: "600px", margin: "0 auto" }}>
-        <h1>Add New Product</h1>
-        <p className="text-muted">List your item on EcoFinds marketplace</p>
+        <h1>Edit Product</h1>
+        <p className="text-muted">Update your item on EcoFinds marketplace</p>
 
         <div className="card">
           <form onSubmit={handleSubmit}>
@@ -158,12 +164,12 @@ const handleSubmit = async (e) => {
                 onChange={handleChange}
                 accept="image/*"
               />
-              <small className="text-muted">Upload a clear photo of your project</small>
+              <small className="text-muted">Upload a new photo to replace the existing one</small>
             </div>
 
             <div className="flex gap-2">
               <button type="submit" className="primary">
-                Add Product
+                Update Product
               </button>
               <button type="button" className="secondary" onClick={() => navigate("/my-listings")}>
                 Cancel
@@ -176,4 +182,4 @@ const handleSubmit = async (e) => {
   );
 };
 
-export default AddProduct;
+export default EditProduct;

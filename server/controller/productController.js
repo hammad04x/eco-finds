@@ -50,23 +50,30 @@ const getProductById = async (req, res, next) => {
 
 const createProduct = async (req, res, next) => {
     try {
+        console.log('Request body:', req.body); // Log the incoming data
+        console.log('Files:', req.files); // Log uploaded files
+
         const { title, description, price, category_id } = req.body;
         if (!title || !description || !price || !category_id) {
             return res.status(400).json({ success: false, message: 'Missing required fields' });
         }
 
-        const userId = req.user.id;
-        const productId = await productModel.create(userId, category_id, title, description, price);
-
-        if (req.files && req.files.length > 0) {
-            const imageUrls = req.files.map(file => path.join('/uploads/products', file.filename));
-            await productModel.createImages(productId, imageUrls);
+        const userId = req.user?.id; // Check if req.user is defined
+        if (!userId) {
+            return res.status(401).json({ success: false, message: 'Unauthorized: User ID not found' });
         }
 
+        let image = null;
+        if (req.file) { // Use req.file instead of req.files for single upload
+            image = path.join( req.file.filename);
+        }
+
+        const productId = await productModel.create(userId, category_id, title, description, price, image);
         const newProduct = await productModel.findById(productId);
         res.status(201).json({ success: true, message: 'Product created successfully', data: newProduct });
     } catch (error) {
-        next(error);
+        console.error('Error in createProduct:', error); // Log the error
+        next(error); // Pass to error handler
     }
 };
 
@@ -83,7 +90,12 @@ const updateProduct = async (req, res, next) => {
             return res.status(403).json({ success: false, message: 'Not authorized to update this product' });
         }
 
-        const updated = await productModel.update(id, req.body);
+        let image = product.image;
+        if (req.files && req.files.length > 0) {
+            image = path.join( req.files[0].filename); // Use first image
+        }
+
+        const updated = await productModel.update(id, { ...req.body, user_id: userId, image });
         if (updated) {
             const updatedProduct = await productModel.findById(id);
             res.status(200).json({ success: true, message: 'Product updated successfully', data: updatedProduct });

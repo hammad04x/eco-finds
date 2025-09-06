@@ -1,47 +1,151 @@
-import { useState, useEffect } from "react"
-import { Link } from "react-router-dom"
-import "../assets/styles/index.css"
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import "../assets/styles/index.css";
 
 const Cart = () => {
-  const [cartItems, setCartItems] = useState([])
+  const [cartItems, setCartItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const cart = JSON.parse(localStorage.getItem("cart") || "[]")
-    setCartItems(cart)
-  }, [])
+    const fetchCart = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          setError("Please log in to view your cart");
+          setLoading(false);
+          navigate("/login");
+          return;
+        }
 
-  const removeFromCart = (id) => {
-    const updatedCart = cartItems.filter((item) => item.id !== id)
-    setCartItems(updatedCart)
-    localStorage.setItem("cart", JSON.stringify(updatedCart))
-  }
+        const response = await axios.get("http://localhost:5000/api/cart", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.data.success) {
+          setCartItems(response.data.data);
+          setLoading(false);
+        } else {
+          setError(response.data.message || "Failed to fetch cart");
+          setLoading(false);
+        }
+      } catch (err) {
+        setError(err.response?.data?.message || "Failed to fetch cart");
+        setLoading(false);
+        if (err.response?.status === 401) {
+          navigate("/login");
+        }
+      }
+    };
+    fetchCart();
+  }, [navigate]);
+
+  const removeFromCart = async (cartItemId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.delete(`http://localhost:5000/api/cart/${cartItemId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.data.success) {
+        setCartItems(cartItems.filter((item) => item.id !== cartItemId));
+        alert("Item removed from cart!");
+      } else {
+        alert(response.data.message || "Failed to remove item");
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to remove item");
+    }
+  };
+
+  const updateQuantity = async (cartItemId, quantity) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.patch(
+        `http://localhost:5000/api/cart/${cartItemId}`,
+        { quantity },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setCartItems(
+          cartItems.map((item) =>
+            item.id === cartItemId ? { ...item, quantity } : item
+          )
+        );
+      } else {
+        alert(response.data.message || "Failed to update quantity");
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to update quantity");
+    }
+  };
 
   const getTotalPrice = () => {
-    return cartItems.reduce((total, item) => total + item.price, 0).toFixed(2)
-  }
+    return cartItems
+      .reduce((total, item) => total + item.price * item.quantity, 0)
+      .toFixed(2);
+  };
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (cartItems.length === 0) {
-      alert("Your cart is empty!")
-      return
+      alert("Your cart is empty!");
+      return;
     }
 
-    // Mock checkout process
-    alert(`Checkout successful! Total: $${getTotalPrice()}`)
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Please log in to proceed with checkout");
+        navigate("/login");
+        return;
+      }
 
-    // Add to purchase history
-    const purchases = JSON.parse(localStorage.getItem("purchases") || "[]")
-    const newPurchases = cartItems.map((item) => ({
-      ...item,
-      purchaseDate: new Date().toISOString(),
-      orderId: Math.random().toString(36).substr(2, 9),
-    }))
-    localStorage.setItem("purchases", JSON.stringify([...purchases, ...newPurchases]))
+      // Mock checkout process (replace with actual order creation API if available)
+      alert(`Checkout successful! Total: $${getTotalPrice()}`);
 
-    // Clear cart
-    setCartItems([])
-    localStorage.setItem("cart", JSON.stringify([]))
-  }
+      // Add to purchase history (client-side, replace with backend order API if needed)
+      const purchases = JSON.parse(localStorage.getItem("purchases") || "[]");
+      const newPurchases = cartItems.map((item) => ({
+        ...item,
+        purchaseDate: new Date().toISOString(),
+        orderId: Math.random().toString(36).substr(2, 9),
+      }));
+      localStorage.setItem("purchases", JSON.stringify([...purchases, ...newPurchases]));
+
+      // Clear cart via backend
+      const response = await axios.delete("http://localhost:5000/api/cart/clear", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.data.success) {
+        setCartItems([]);
+      } else {
+        alert(response.data.message || "Failed to clear cart");
+      }
+    } catch (err) {
+      console.error("Checkout error:", err.response?.data, err.response?.status);
+      alert(err.response?.data?.message || "Checkout failed");
+      if (err.response?.status === 401) {
+        navigate("/login");
+      }
+    }
+  };
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
 
   return (
     <div className="container">
@@ -64,7 +168,7 @@ const Cart = () => {
                 <div key={item.id} className="cart-item">
                   <div className="cart-item-image">
                     {item.image ? (
-                      <img src={item.image || "/placeholder.svg"} alt={item.title} />
+                      <img src={`/uploads${item.image}`} alt={item.title} />
                     ) : (
                       <span>No Image</span>
                     )}
@@ -72,7 +176,17 @@ const Cart = () => {
                   <div className="cart-item-info">
                     <h3 className="cart-item-title">{item.title}</h3>
                     <div className="cart-item-price">${item.price}</div>
-                    <span className="product-category">{item.category}</span>
+                    <span className="product-category">{item.category_name || "Unknown"}</span>
+                    <div>
+                      <strong>Quantity:</strong>
+                      <input
+                        type="number"
+                        min="1"
+                        value={item.quantity}
+                        onChange={(e) => updateQuantity(item.id, parseInt(e.target.value))}
+                        style={{ width: "60px", marginLeft: "10px" }}
+                      />
+                    </div>
                   </div>
                   <button
                     onClick={() => removeFromCart(item.id)}
@@ -105,7 +219,7 @@ const Cart = () => {
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Cart
+export default Cart;  

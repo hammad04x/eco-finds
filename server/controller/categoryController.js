@@ -12,14 +12,13 @@ const getCategories = async (req, res, next) => {
 
 const createCategory = async (req, res, next) => {
     try {
-        const { name } = req.body;
+        const { name, status = 1 } = req.body;
         if (!name || !validate.isValidString(name)) {
             return res.status(400).json({ success: false, message: 'Category name is required' });
-            console.log("false")
         }
 
-        const categoryId = await categoryModel.create(name);
-        res.status(201).json({ success: true, message: 'Category created', data: { id: categoryId, name } });
+        const categoryId = await categoryModel.create(name, status);
+        res.status(201).json({ success: true, message: 'Category created', data: { id: categoryId, name, status } });
     } catch (error) {
         next(error);
     }
@@ -28,12 +27,12 @@ const createCategory = async (req, res, next) => {
 const updateCategory = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const { name } = req.body;
+        const { name, status } = req.body;
         if (!validate.isNumericId(id) || !validate.isValidString(name)) {
             return res.status(400).json({ success: false, message: 'Invalid ID or name' });
         }
 
-        const updated = await categoryModel.update(id, name);
+        const updated = await categoryModel.update(id, name, status);
         if (updated) {
             res.status(200).json({ success: true, message: 'Category updated successfully' });
         } else {

@@ -1,40 +1,66 @@
-import { useParams, useNavigate } from "react-router-dom"
-import "../../assets/styles/index.css"
-
-// Mock data - in real app, this would come from API
-const mockProduct = {
-  id: 1,
-  title: "Vintage Leather Jacket",
-  description:
-    "Beautiful vintage leather jacket in excellent condition. Perfect for fall and winter. Size M. Genuine leather with soft lining.",
-  category: "Clothing",
-  price: 45,
-  image: null,
-  seller: "John Doe",
-  condition: "Excellent",
-  location: "New York, NY",
-}
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
+import "../../assets/styles/index.css";
 
 const ProductDetail = () => {
-  const { id } = useParams()
-  const navigate = useNavigate()
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // In real app, you'd fetch product by ID
-  const product = mockProduct
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const response = await axios.get(`http://localhost:5000/api/products/${id}`);
+        setProduct(response.data.data);
+        setLoading(false);
+      } catch (err) {
+        setError("Failed to fetch product");
+        setLoading(false);
+      }
+    };
+    fetchProduct();
+  }, [id]);
 
-  const handleAddToCart = () => {
-    // Mock add to cart - in real app, this would update cart state/API
-    const cart = JSON.parse(localStorage.getItem("cart") || "[]")
-    const existingItem = cart.find((item) => item.id === product.id)
+  const handleAddToCart = async () => {
+    try {
+      const token = localStorage.getItem("token"); // Assuming token is stored after login
+      if (!token) {
+        alert("Please log in to add items to your cart");
+        navigate("/login"); // Redirect to login page
+        return;
+      }
 
-    if (existingItem) {
-      alert("Item already in cart!")
-    } else {
-      cart.push(product)
-      localStorage.setItem("cart", JSON.stringify(cart))
-      alert("Added to cart!")
+      const response = await axios.post(
+        "http://localhost:5000/api/cart",
+        { product_id: product.id, quantity: 1 },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Include JWT token
+          },
+        }
+      );
+
+      if (response.data.success) {
+        alert("Item added to cart!");
+      } else {
+        alert(response.data.message || "Failed to add item to cart");
+      }
+    } catch (err) {
+      if (err.response?.status === 401) {
+        alert("Session expired. Please log in again.");
+        navigate("/login");
+      } else {
+        alert(err.response?.data?.message || "Failed to add item to cart");
+      }
     }
-  }
+  };
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
+  if (!product) return <div>Product not found</div>;
 
   return (
     <div className="container">
@@ -48,7 +74,7 @@ const ProductDetail = () => {
             <div className="product-image" style={{ height: "400px", borderRadius: "var(--radius)" }}>
               {product.image ? (
                 <img
-                  src={product.image || "/placeholder.svg"}
+                  src={`/uploads${product.image}`}
                   alt={product.title}
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
@@ -63,24 +89,24 @@ const ProductDetail = () => {
             <div className="product-price" style={{ fontSize: "2rem", marginBottom: "1rem" }}>
               ${product.price}
             </div>
-            <span className="product-category">{product.category}</span>
+            <span className="product-category">{product.category_name}</span>
 
             <div style={{ margin: "2rem 0" }}>
               <h3>Description</h3>
-              <p>{product.description}</p>
+              <p>{product.description || "No description available"}</p>
             </div>
 
             <div className="card">
               <h4>Product Details</h4>
               <div style={{ display: "grid", gap: "0.5rem" }}>
                 <div>
-                  <strong>Condition:</strong> {product.condition}
+                  <strong>Condition:</strong> {product.condition || "Not specified"}
                 </div>
                 <div>
-                  <strong>Seller:</strong> {product.seller}
+                  <strong>Seller:</strong> {product.seller_username}
                 </div>
                 <div>
-                  <strong>Location:</strong> {product.location}
+                  <strong>Location:</strong> {product.location || "Not specified"}
                 </div>
               </div>
             </div>
@@ -95,7 +121,7 @@ const ProductDetail = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default ProductDetail
+export default ProductDetail;
